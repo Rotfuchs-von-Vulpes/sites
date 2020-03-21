@@ -1,0 +1,38 @@
+<html>
+    <head>
+        <title>Votação</title>
+        <link href="css.css" rel="stylesheet">
+        
+    </head>
+    <body>
+        <form oninput="reflesh();" class="form">
+            <img id="visor" src="none.png" alt="nada" class="visor"><br>
+
+            <input type="button" value="1" id="key" class="number" onclick="oacnuf(1)">
+            <input type="button" value="2" id="key" class="number" onclick="oacnuf(2)">
+            <input type="button" value="3" id="key" class="number" onclick="oacnuf(3)"><br>
+
+            <input type="button" value="4" id="key" class="number" onclick="oacnuf(4)">
+            <input type="button" value="5" id="key" class="number" onclick="oacnuf(5)">
+            <input type="button" value="6" id="key" class="number" onclick="oacnuf(6)"><br>
+
+            <input type="button" value="7" id="key" class="number" onclick="oacnuf(7)">
+            <input type="button" value="8" id="key" class="number" onclick="oacnuf(8)">
+            <input type="button" value="9" id="key" class="number" onclick="oacnuf(9)"><br>
+
+            <input type="button" value="0" id="key" class="number" onclick="oacnuf(0)"><br>
+            <input type="button" value="Confirma" id="key" onclick="fertig()" style="border-color: rgb(13, 51, 14); color: white; background-color: rgb(26,100,28);">
+            <input type="button" value="Branco" id="key" onclick="weiss()" style="border-color: rgb(75, 75, 75); color: black; background-color: rgb(200,200,200);">
+            <input type="button" value="cancela" id="key" onclick="loschen()" style="border-color: rgb(77, 5, 5); color: white; background-color: rgb(180,10,10);"><br>
+        </form>
+        <form>
+            <input type="button" value="lista" class="list" onclick="div('lista')">
+            <input type="button" value="resultado" class="list" onclick="div('result')">
+            <input type="button" value="nada" class="list" onclick="div('nada')"><br>
+        
+        <div id="lista">Candidatos</div>
+        <div id="result">Votos</div>
+        <script src="voto.js"></script>
+        </form>
+    </body>
+</html>
