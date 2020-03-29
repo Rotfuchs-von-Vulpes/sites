@@ -3,6 +3,10 @@ player = {
     x: 465,
     y: 255,
 };
+NPC = {
+    x:18,
+    y:18,
+}
 v=7;
 level=0;
 score=0;
@@ -116,6 +120,13 @@ function distance(id1,r,x1,y1){
     }
     return d;
 }
+
+function distanceTo(x1, y1, x2, y2) {
+    x = x1-x2
+    y = y1-y2
+    return [x, y]
+}
+
 function ptgs(x1,y1,x2,y2){
     return ((x1-x2)**2+(y1-y2)**2)**0.5;
 }
@@ -128,9 +139,21 @@ function free(x1){
     else if(x1=="-y" && player.y>=0+15+v){r = false;}
     return !r;
 }
+
 function move (mx,my){
     player.x=player.x+mx;
     player.y=player.y+my;
+    for(i=1;i<=n;i++){
+        if(distance(i,true)<=25){
+            remove(i);
+            score++;
+        };
+    }
+}
+
+function moveNPC (mx,my){
+    NPC.x=NPC.x+mx;
+    NPC.y=NPC.y+my;
     for(i=1;i<=n;i++){
         if(distance(i,true)<=25){
             remove(i);
@@ -158,7 +181,11 @@ function TIC(){
         ctx.fillRect(0, 0, 750, 500);
         fruits();
         spr(foximg, player.x-15, player.y-15);
-
+        spr(wolfimg, NPC.x-15, NPC.y-15);
+        moveNPC(
+            distanceTo(NPC.x, NPC.y, fruits[0], fruits[1])[0],
+            distanceTo(NPC.x, NPC.y, fruits[0], fruits[1])[1]
+        )
 }
 
     drawgame();
