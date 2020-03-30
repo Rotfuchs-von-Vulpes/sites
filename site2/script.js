@@ -1,16 +1,25 @@
 //variavaeis mecanicas do jogo
+speed = 7;
+level = 0;
+score = 0;
+fruits = [];
+millisecond = 0;
+second = 0;
+
 player = {
+    canScore: true,
+    enemy: false,
     x: 465,
     y: 255,
 };
-v=7;
-level=0;
-score=0;
-n=0;
-fruit = {};
-t=false;
-time = 0;
-times = 0;
+NPC = {
+    speed: 1,
+    canScore: true,
+    enemy: true,
+    x: 18,
+    y: 18,
+    movingTo: undefined
+}
 
 //variaveis graficas
 var canvas = document.getElementById('canvas');
@@ -21,186 +30,204 @@ if (canvas.getContext) {
     var ctx = canvas.getContext('2d');
 }
 
-setInterval(function () {
-    TIC();
-}, 16)
-
-function text(string, x1, y1){
-
-}
-function squad(x1, y1, x2, y2, scolor){
-    ctx.lineStyle = 'white';
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x1, y2);
-    ctx.lineTo(x2, y2);
-    ctx.lineTo(x2, y1);
-    ctx.lineTo(x1, y1);
-    ctx.stroke();
-}
-function line(x1, y1, x2, y2, scolor){
-    ctx.fillStyle(scolor);
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-}
-function spr(img, px, py){
-    ctx.drawImage(img, px, py, 30, 30);
-}
-function rect(x1, y1, x2, y2, scolor){
-    ctx.fillStyle = scolor;
-    ctx.fillRect(x1,y1,x2,y2);
-}
-function txt(){
+function txt() {
     document.getElementById("x").innerHTML = "X = " + player.x;
     document.getElementById("y").innerHTML = "Y = " + player.y;
     document.getElementById("p").innerHTML = "Score = " + score;
-    document.getElementById("m").innerHTML = "T = " + time;
-    document.getElementById("s").innerHTML = "T(s) = " + times;
-}
-function fruits(){
-    for(i=1;i<=n;i++){
-        spr(purplyimg,fruit[i].x-15,fruit[i].y-15);
-    }
+    document.getElementById("m").innerHTML = "Seconds = " + second;
+    document.getElementById("s").innerHTML = `Milliseconds = ${millisecond}`;
+    document.getElementById("debug").innerHTML = `debug = ${NPC.movingTo}`;
+
 }
 
-function remove(r){
-    var i = 0;
-    for(i=r;i<=n;i++){
-        if(i!=n){
-            fruit[i] = {
-                x: fruit[(i+1)].x,
-                y: fruit[(i+1)].y,
+function spr(img, x, y) {
+    ctx.drawImage(img, x - 15, y - 15, 30, 30);
+}
+
+function createFruit(x, y) {
+    fruits.push({
+        x: x,
+        y: y,
+    })
+}
+
+function resetNPCPath() {
+    let targets = fruits.slice()
+    while (targets.length > 1) {
+        if (radialDistance(NPC, targets[0]) >= radialDistance(NPC, targets[targets.length - 1])) {
+            targets.shift()
+        } else {
+            targets.pop()
+        }
+    }
+    NPC.movingTo = targets[0]
+}
+
+function removeFruit(f) {
+    fruits.splice(f, 1);
+
+    f = undefined
+    let targets = fruits.slice()
+    resetNPCPath()
+
+}
+
+function distance2D(obj1, obj2) {
+    let x = obj1.x - obj2.x
+    let y = obj1.y - obj2.y
+    return { x, y }
+}
+
+function radialDistance(obj1, obj2) {
+    x = distance2D(obj1, obj2).x
+    y = distance2D(obj1, obj2).y
+    res = (x ** 2 + y ** 2) ** 0.5
+    return res
+}
+
+function move(obj, x, y) {
+    obj.x += x;
+    obj.y += y;
+    if (obj.canScore) {
+        for (i = 0; i <= fruits.length - 1; i++) {
+            if (radialDistance(obj, fruits[i]) <= 25) {
+                removeFruit(i);
+                if (obj.enemy) {
+                    score--;
+                } else {
+                    score++
+                }
             };
-        }else{
-            delete fruit[n].x;
-            delete fruit[n].y;
-            n--;
         }
     }
 }
-function add(x1,y1){
-    n++;
-    fruit[n] = {
-        x: x1,
-        y: y1,
-    };
+
+function free(x) {
+    var r = true;
+
+    if (x == "+x" && player.x <= 750 - 15 - speed) { r = false; }
+    else if (x == "-x" && player.x >= 0 + 15 + speed) { r = false; }
+    else if (x == "+y" && player.y <= 500 - 15 - speed) { r = false; }
+    else if (x == "-y" && player.y >= 0 + 15 + speed) { r = false; }
+    return !r;
 }
-function check(x1,y1){
-    var r=true;
-    for(i=1;i<=n;i++){
-        if(distance(i,false,x1,y1)<=40 && ptgs(player.x,player.y,x1,y1)<=40){r=false;}
+
+function teleport(obj, x, y) {
+    obj.x = x;
+    obj.y = y;
+}
+
+function check(x, y) {
+    var r = true;
+    for (i = 1; i <= fruits.length - 1; i++) {
+        if (radialDistance(i, { x, y }) <= 40 && radialDistance(player, x, y) <= 40) { r = false; }
     }
     return r;
 }
-function random(r){
-    var x1=0;
-    var y1=0;
-    var i=0;
 
-    while(i<=r){
-        x1=15+720*Math.random();
-        y1=15+470*Math.random();
-        if(check(x1,y1)){
-            add(x1,y1);
+function random(r) {
+    var x = 0;
+    var y = 0;
+    var i = 0;
+
+    while (i < r) {
+        x = 15 + 720 * Math.random();
+        y = 15 + 470 * Math.random();
+        if (check(x, y)) {
+            createFruit(x, y);
             i++;
         }
     }
-}
-function distance(id1,r,x1,y1){
-    var d = 0;
-
-    if (r){
-        d=ptgs(fruit[id1].x,fruit[id1].y,player.x,player.y);
-    }else{
-        d=ptgs(fruit[id1].x,fruit[id1].y,x1,y1);
-    }
-    return d;
-}
-function ptgs(x1,y1,x2,y2){
-    return ((x1-x2)**2+(y1-y2)**2)**0.5;
-}
-function free(x1){
-    var r=true;
-
-    if(x1=="+x" && player.x<=750-15-v){r = false;}
-    else if(x1=="-x" && player.x>=0+15+v){r = false;}
-    else if(x1=="+y" && player.y<=500-15-v){r = false;}
-    else if(x1=="-y" && player.y>=0+15+v){r = false;}
-    return !r;
-}
-function move (mx,my){
-    player.x=player.x+mx;
-    player.y=player.y+my;
-    for(i=1;i<=n;i++){
-        if(distance(i,true)<=25){
-            remove(i);
-            score++;
-        };
-    }
+    resetNPCPath()
 }
 
-function TIC(){
+function TIC() {
 
     //document.onkeydown = applyKey;
-    time=time+1;
-    if(time>=60){
-        times++;
-        time=0;
+    millisecond = millisecond + 1;
+    if (millisecond >= 60) {
+        second++;
+        millisecond = 0;
     }
 
-    if(n==0){
+    if (fruits.length == 0) {
         level++;
-        random(4+level);
+        random(4 + level);
+        NPC.movingTo = fruits[0]
     }
 
     function drawgame() {
         ctx.fillStyle = '#333333';
         ctx.fillRect(0, 0, 750, 500);
-        fruits();
-        spr(foximg, player.x-15, player.y-15);
+        spr(foximg, player.x, player.y);
+        spr(wolfimg, NPC.x, NPC.y);
 
-}
+        for (i = 0; i <= fruits.length - 1; i++) {
+            spr(purplyimg, fruits[i].x, fruits[i].y);
+        }
+    }
+
+    let dir = { x, y }
+
+    if (distance2D(NPC, NPC.movingTo).x > 0) {
+        dir.x = -NPC.speed
+    } else if (distance2D(NPC, NPC.movingTo).x < 0) {
+        dir.x = NPC.speed
+    } else { dir.x = 0 }
+
+    if (distance2D(NPC, NPC.movingTo).y > 0) {
+        dir.y = -NPC.speed
+    } else if (distance2D(NPC, NPC.movingTo).y < 0) {
+        dir.y = NPC.speed
+    } else { dir.y = 0 }
+
+    move(NPC, dir.x, dir.y)
 
     drawgame();
     txt();
 
+}
+
+setInterval(function () {
+    TIC();
+}, 16)
+
+window.addEventListener("keydown", (event) => {
+    if (event.defaultPrevented) {
+        return; // Do nothing if the event was already processed
     }
-    window.addEventListener("keydown", function (event) {
-        if (event.defaultPrevented) {
-          return; // Do nothing if the event was already processed
-        }
-      
-        switch (event.key) {
-            case "Down": // IE/Edge specific value
-            case "ArrowDown":
-                if(free("+y")){move(0,v);}
-                break;
-            case "Up": // IE/Edge specific value
-            case "ArrowUp":
-                if(free("-y")){move(0,-v);}
-                // Do something for "up arrow" key press.
-                break;
-            case "Left": // IE/Edge specific value
-            case "ArrowLeft":
-                if(free("-x")){move(-v,0);}
-                // Do something for "left arrow" key press.
-                break;
-            case "Right": // IE/Edge specific value
-            case "ArrowRight":
-                if(free("+x")){move(v,0);}
-                // Do something for "right arrow" key press.
-                break;
-            case "Enter":
-                // Do something for "enter" or "return" key press.
-                break;
-            case "Esc": // IE/Edge specific value
-            case "Escape":
-                // Do something for "esc" key press.
-                break;
-            default:
-                return; // Quit when this doesn't handle the key event.
-        }
-      
-        // Cancel the default action to avoid it being handled twice
-        event.preventDefault();
-      }, true);
+
+    switch (event.key) {
+        case "Down": // IE/Edge specific value
+        case "ArrowDown":
+            if (free("+y")) { move(player, 0, speed); }
+            break;
+        case "Up": // IE/Edge specific value
+        case "ArrowUp":
+            if (free("-y")) { move(player, 0, -speed); }
+            // Do something for "up arrow" key press.
+            break;
+        case "Left": // IE/Edge specific value
+        case "ArrowLeft":
+            if (free("-x")) { move(player, -speed, 0); }
+            // Do something for "left arrow" key press.
+            break;
+        case "Right": // IE/Edge specific value
+        case "ArrowRight":
+            if (free("+x")) { move(player, speed, 0); }
+            // Do something for "right arrow" key press.
+            break;
+        case "Enter":
+            // Do something for "enter" or "return" key press.
+            break;
+        case "Esc": // IE/Edge specific value
+        case "Escape":
+            // Do something for "esc" key press.
+            break;
+        default:
+            return; // Quit when this doesn't handle the key event.
+    }
+
+    // Cancel the default action to avoid it being handled twice
+    event.preventDefault();
+}, true);
