@@ -1,18 +1,23 @@
 //variavaeis mecanicas do jogo
-speed = 7;
-level = 0;
-score = 0;
-fruits = [];
-millisecond = 0;
-second = 0;
+let level = 0;
+let score = 0;
+let fruits = [];
+let millisecond = 0;
+let second = 0;
 
-player = {
+let player = {
+    speed: 1.5,
     canScore: true,
     enemy: false,
     x: 465,
     y: 255,
+    motion: {
+        x: 0,
+        y: 0
+    }
 };
-NPC = {
+
+let NPC = {
     speed: 1,
     canScore: true,
     enemy: true,
@@ -22,7 +27,7 @@ NPC = {
 }
 
 //variaveis graficas
-var canvas = document.getElementById('canvas');
+let canvas = document.getElementById('canvas');
 if (canvas.getContext) {
     var foximg = document.getElementById("fox");
     var wolfimg = document.getElementById("wolf");
@@ -36,12 +41,8 @@ function txt() {
     document.getElementById("p").innerHTML = "Score = " + score;
     document.getElementById("m").innerHTML = "Seconds = " + second;
     document.getElementById("s").innerHTML = `Milliseconds = ${millisecond}`;
-    document.getElementById("debug").innerHTML = `debug = ${NPC.movingTo}`;
+    document.getElementById("debug").innerHTML = `debug = ${player.x}`;
 
-}
-
-function spr(img, x, y) {
-    ctx.drawImage(img, x - 15, y - 15, 30, 30);
 }
 
 function createFruit(x, y) {
@@ -49,6 +50,15 @@ function createFruit(x, y) {
         x: x,
         y: y,
     })
+}
+
+function removeFruit(f) {
+    fruits.splice(f, 1);
+
+    f = undefined
+    let targets = fruits.slice()
+    resetNPCPath()
+
 }
 
 function resetNPCPath() {
@@ -61,28 +71,6 @@ function resetNPCPath() {
         }
     }
     NPC.movingTo = targets[0]
-}
-
-function removeFruit(f) {
-    fruits.splice(f, 1);
-
-    f = undefined
-    let targets = fruits.slice()
-    resetNPCPath()
-
-}
-
-function distance2D(obj1, obj2) {
-    let x = obj1.x - obj2.x
-    let y = obj1.y - obj2.y
-    return { x, y }
-}
-
-function radialDistance(obj1, obj2) {
-    x = distance2D(obj1, obj2).x
-    y = distance2D(obj1, obj2).y
-    res = (x ** 2 + y ** 2) ** 0.5
-    return res
 }
 
 function move(obj, x, y) {
@@ -103,14 +91,15 @@ function move(obj, x, y) {
 }
 
 function free(x) {
-    var r = true;
+    let r = true;
 
-    if (x == "+x" && player.x <= 750 - 15 - speed) { r = false; }
-    else if (x == "-x" && player.x >= 0 + 15 + speed) { r = false; }
-    else if (x == "+y" && player.y <= 500 - 15 - speed) { r = false; }
-    else if (x == "-y" && player.y >= 0 + 15 + speed) { r = false; }
+    if (x == "+x" && player.x <= 750 - 15 - player.speed) { r = false; }
+    else if (x == "-x" && player.x >= 0 + 15 + player.speed) { r = false; }
+    else if (x == "+y" && player.y <= 500 - 15 - player.speed) { r = false; }
+    else if (x == "-y" && player.y >= 0 + 15 + player.speed) { r = false; }
     return !r;
 }
+
 
 function teleport(obj, x, y) {
     obj.x = x;
@@ -118,7 +107,7 @@ function teleport(obj, x, y) {
 }
 
 function check(x, y) {
-    var r = true;
+    let r = true;
     for (i = 1; i <= fruits.length - 1; i++) {
         if (radialDistance(i, { x, y }) <= 40 && radialDistance(player, x, y) <= 40) { r = false; }
     }
@@ -126,9 +115,9 @@ function check(x, y) {
 }
 
 function random(r) {
-    var x = 0;
-    var y = 0;
-    var i = 0;
+    let x = 0;
+    let y = 0;
+    let i = 0;
 
     while (i < r) {
         x = 15 + 720 * Math.random();
@@ -143,9 +132,9 @@ function random(r) {
 
 function TIC() {
 
-    //document.onkeydown = applyKey;
-    millisecond = millisecond + 1;
-    if (millisecond >= 60) {
+    //document.onkeydown = applyKey;  
+    millisecond = millisecond + 16;
+    if (millisecond >= 1000) {
         second++;
         millisecond = 0;
     }
@@ -156,9 +145,30 @@ function TIC() {
         NPC.movingTo = fruits[0]
     }
 
+    if (pressed("ArrowUp")) {
+        if (free("-y")) { player.motion.y = -player.speed; }
+        else { player.motion.y = 0 }
+    } else if (pressed("ArrowDown")) {
+        if (free("+y")) { player.motion.y = player.speed; }
+        else { player.motion.y = 0 }
+    } else {
+        player.motion.y = 0
+    }
+
+    if (pressed("ArrowLeft")) {
+        if (free("-x")) { player.motion.x = -player.speed; }
+        else { player.motion.x = 0 }
+    } else if (pressed("ArrowRight")) {
+        if (free("+x")) { player.motion.x = player.speed; }
+        else { player.motion.x = 0 }
+    } else {
+        player.motion.x = 0
+    }
+
     function drawgame() {
         ctx.fillStyle = '#333333';
         ctx.fillRect(0, 0, 750, 500);
+        move(player, player.motion.x, player.motion.y)
         spr(foximg, player.x, player.y);
         spr(wolfimg, NPC.x, NPC.y);
 
@@ -188,46 +198,6 @@ function TIC() {
 
 }
 
-setInterval(function () {
+setInterval(() => {
     TIC();
 }, 16)
-
-window.addEventListener("keydown", (event) => {
-    if (event.defaultPrevented) {
-        return; // Do nothing if the event was already processed
-    }
-
-    switch (event.key) {
-        case "Down": // IE/Edge specific value
-        case "ArrowDown":
-            if (free("+y")) { move(player, 0, speed); }
-            break;
-        case "Up": // IE/Edge specific value
-        case "ArrowUp":
-            if (free("-y")) { move(player, 0, -speed); }
-            // Do something for "up arrow" key press.
-            break;
-        case "Left": // IE/Edge specific value
-        case "ArrowLeft":
-            if (free("-x")) { move(player, -speed, 0); }
-            // Do something for "left arrow" key press.
-            break;
-        case "Right": // IE/Edge specific value
-        case "ArrowRight":
-            if (free("+x")) { move(player, speed, 0); }
-            // Do something for "right arrow" key press.
-            break;
-        case "Enter":
-            // Do something for "enter" or "return" key press.
-            break;
-        case "Esc": // IE/Edge specific value
-        case "Escape":
-            // Do something for "esc" key press.
-            break;
-        default:
-            return; // Quit when this doesn't handle the key event.
-    }
-
-    // Cancel the default action to avoid it being handled twice
-    event.preventDefault();
-}, true);
