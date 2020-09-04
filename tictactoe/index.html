@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<head>
+    <title>TIC TAC TOE</title>
+    <meta charset="UTF-8"></meta>
+    <!--link rel="stylesheet" href="../styles.css"></link>-->
+    <link rel="stylesheet" href="../styles.css"></link>
+    <link rel="stylesheet" href="styles.css"></link>
+</head>
+<body>
+    <form>
+        <div id="game">Player 1</div>
+        <div id="0" class="box">
+            <div id="00" onclick="game.play(this)"></div>
+            <div id="01" onclick="game.play(this)"></div>
+            <div id="02" onclick="game.play(this)"></div>
+        </div>
+        <div id="1" class="box">
+            <div id="10" onclick="game.play(this)"></div>
+            <div id="11" onclick="game.play(this)"></div>
+            <div id="12" onclick="game.play(this)"></div>
+        </div>
+        <div id="2" class="box">
+            <div id="20" onclick="game.play(this)"></div>
+            <div id="21" onclick="game.play(this)"></div>
+            <div id="22" onclick="game.play(this)"></div>
+        </div>
+        <input type="button" onclick="game.init()" value="Reiniciar">
+        <script src="script.js"></script>
+    </form>
+</body>
