@@ -67,7 +67,6 @@ const game = {
     },
     verific: function(a){
         //verificar se todos os elementos de uma array são iguais
-        console.log("verificando!")
 
         let r = a[0];
         for(i in a){
@@ -97,7 +96,6 @@ const game = {
             let j = [];
             for(i=0; i<=2; i++){
                 j[i] = this.table[i][i];
-                console.log(j[i]);
             }
             if(this.verific(j)){
                 return true;
@@ -108,7 +106,6 @@ const game = {
             let j = [];
             for(i=0; i<=2; i++){
                 j[i] = this.table[i][2 - i];
-                console.log(j[i]);
             }
             if(this.verific(j)){
                 return true;
