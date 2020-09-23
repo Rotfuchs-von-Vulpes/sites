@@ -34,6 +34,9 @@ for(i=-w.x/2; i<=w.x/2; i++){
       let y1 = 2*x*y + c2;
       x = x1; y = y1;
       if(x**2 + y**2 > 4){
+        let l = k * 4;
+        let n = k / 4;
+        ctx.fillStyle = 'rgb(' + l + ',' + k + ',' + n + ')'
         ctx.fillRect(i, j, 1, 1)
         break;
       }
