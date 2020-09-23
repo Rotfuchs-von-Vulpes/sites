@@ -10,9 +10,9 @@ var grid = {
 
 function resize(){
   if(w.x < w.y){
-    grid.c = w.x/3;
+    grid.c = w.x/4;
   }else{
-    grid.c = w.y/3;
+    grid.c = w.y/4;
   }
 }
 
@@ -23,13 +23,6 @@ resize();
 ctx.translate(w.x/2, w.y/2);
 ctx.fillStyle = '#9E9FA7';
 ctx.strokeStyle = '#9E9FA7';
-ctx.fillRect(0, 0, 1, 1);
-ctx.moveTo(-(w.x/2),0);
-ctx.lineTo(w.x/2,0);
-ctx.stroke();
-ctx.moveTo(0, -(w.y/2));
-ctx.lineTo(0, w.y/2);
-ctx.stroke();
 
 for(i=-w.x/2; i<=w.x/2; i++){
   for(j=-w.y/2; j<=w.y/2; j++){
