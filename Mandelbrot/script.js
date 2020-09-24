@@ -21,8 +21,7 @@ canvas.width = w.x;
 resize();
 
 ctx.translate(w.x/2, w.y/2);
-ctx.fillStyle = '#9E9FA7';
-ctx.strokeStyle = '#9E9FA7';
+ctx.fillRect(-w.x/2, -w.y/2, w.x, w.y);
 
 for(i=-w.x/2; i<=w.x/2; i++){
   for(j=-w.y/2; j<=w.y/2; j++){
@@ -43,5 +42,3 @@ for(i=-w.x/2; i<=w.x/2; i++){
     }
   }
 }
-
-//teste
