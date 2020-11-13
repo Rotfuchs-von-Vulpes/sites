@@ -13,78 +13,128 @@ let inputs = {
     "ArrowDown": { "pressed": false, "handled": false },
 }
 
-function newObject(x, y, speed){
-    this.x = x;
-    this.y = y;
-    this.speed = speed;
-}
-
-var corvo = new newObject(200, 200, 10);
-var obstacles = [];
-var tic = 0;
-var speed = 25;
-
-corvo.r = 30;
-corvo.draw = function(){
-    ctx.beginPath();
-    ctx.moveTo(200, this.y);
-    ctx.arc(200, this.y, this.r, 0, 2 * Math.PI);
-    ctx.fill();
-}
-corvo.move = function(dy){
-    this.y += dy * this.speed;
-}
-
 function random(a, b){
     return Math.random() * a + b;
 }
 
-function newPlataform(q){
-    for(i=0; i<q; i++){
-        let plataform = new newObject(w.x, 100 * random(w.y/100, 0), 10);
-    plataform.height = 100 * random(9, 1);
-    plataform.draw = function(){
-        ctx.beginPath();
-        ctx.fillRect(this.x, this.y, this.height, 50);
-    }
-    plataform.move = function(dx){
-        this.x += dx * speed;
-    }
-    obstacles.push(plataform);
-    }
+function newObject(x, y){
+    this.x = x;
+    this.y = y;
 }
 
-newPlataform(1);
+var corvo = new newObject(200, random(w.y-this.r, this.r));
+var column = [];
+var width = Math.floor(w.y/50);
+var tic = 0;
+var speed = 5;
+var score = 0;
+
+corvo.r = 49;
+corvo.draw = function(){
+    ctx.beginPath();
+    ctx.fillStyle = "red";
+    ctx.fillRect(this.x, this.y, this.r, this.r);
+    ctx.fillStyle = "black";
+    ctx.fill();
+}
+corvo.move = function(dy){
+    if(corvo.y+speed*dy >= 0 && corvo.y+speed*dy <= width * 50){
+        this.y += dy * speed;
+    }
+}
 
 function gameOver(){
-    corvo.y = 100;
-    speed = 25;
-    obstacles = [];
-    newPlataform(1);
+    corvo.y = random(w.y - corvo.r, corvo.r);
+    speed = 5;
+    column = [];
+    newPlataform(3);
+    newCoin(2);
 }
+
+function newPlataform(q){
+    //console.log("nova plataforma")
+    for(i=0; i<q; i++){
+        let resp = Math.round(random(width, 0)); 
+        while(column[resp] != undefined){
+            resp = Math.round(random(width, 0));
+        }
+        let plataform = new newObject(w.x, 50 * resp);
+        plataform.id = "plataform";
+        plataform.height = 100 * random(9, 1);
+        plataform.draw = function(){
+            ctx.beginPath();
+            ctx.fillRect(this.x - 1, this.y - 1, this.height - 1, 49);
+        }
+        plataform.move = function(dx){
+            this.x += dx * speed;
+        }
+        plataform.collision = function(){
+            gameOver();
+        }
+        column[resp] = plataform;
+    }
+}
+
+function newCoin(q){
+    for(i=0; i<q; i++){
+        let resp = Math.round(random(width, 0)); 
+        while(column[resp] != undefined){
+            resp = Math.round(random(width, 0));
+        }
+        let coin = new newObject(w.x, 50 * resp);
+        coin.id = "coin";
+        coin.height = 50;
+        coin.draw = function(){
+            ctx.beginPath();
+            ctx.fillStyle = "green";
+            ctx.fillRect(this.x - 1, this.y - 1, this.height - 1, 49);
+            ctx.fillStyle = "black";
+        }
+        coin.move = function(dx){
+            this.x += dx * speed;
+        }
+        coin.collision = function(){
+            newCoin(1);
+            score++;
+        };
+        column[resp] = coin;
+    }
+}
+
+gameOver();
 
 function TIC(){
     ctx.clearRect(0, 0, w.x, w.y);
-
     tic++;
     if(tic%180 == 0){
         speed++;
     }
 
-    for(i in obstacles){
-        let plataform = obstacles[i];
-        plataform.draw();
-        plataform.move(-1);
-        if(plataform.x + plataform.height < 0){
-            obstacles.splice(i, 1);
-            newPlataform(1);
-        }
-        if(plataform.x <= corvo.x - corvo.r && plataform.x + plataform.height >= corvo.x + corvo.r){
-            if(plataform.y + 50 >= corvo.y - corvo.r && plataform.y <= corvo.y + corvo.r){
-                gameOver();
-                console.log("hurra");
+    for(j in column){
+        if(column[j] != undefined){
+            let plataform = column[j];
+            plataform.draw();
+            plataform.move(-1);
+            if(plataform.x + plataform.height < 0){
+                column[j] = undefined;
+                switch (plataform.id) {
+                    case "plataform":
+                        newPlataform(1);
+                        break;
+                    case "coin":
+                        newCoin(1);
+                        break;
+                }
+                //console.log("deletar")
             }
-            
+            if(plataform.x <= corvo.x + corvo.r && plataform.x + plataform.height >= corvo.x + corvo.r){
+                //console.log("shit");
+                if(plataform.y <= corvo.y + corvo.r && plataform.y + 50 >= corvo.y){
+                    console.log(j);
+                    plataform.collision();
+                    column[j] = undefined;
+                }
+            }
         }
     }
 
@@ -95,6 +145,7 @@ function TIC(){
     } else if (pressed("ArrowDown")) {
         corvo.move(1);
     }
+    ctx.fillText("score: "+score, 10, 10);
 }
 
 window.addEventListener("keydown", (event) => {
