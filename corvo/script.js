@@ -46,6 +46,7 @@ corvo.move = function(dy){
 function gameOver(){
     corvo.y = random(w.y - corvo.r, corvo.r);
     speed = 5;
+    score = 0;
     column = [];
     newPlataform(3);
     newCoin(2);
