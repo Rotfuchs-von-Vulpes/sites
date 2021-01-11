@@ -3,146 +3,140 @@ const w = {
     x: window.innerWidth - 6,
     y: window.innerHeight - 6
 }
-let directions = [0, 1, 2, 3, 4];
-let colors = ["rgb(30, 30, 30)", "rgb(200, 200, 200", "rgb(30, 30, 200)", "rgb(200, 30, 30)"];
-let iterator = true;
+let colors = ["rgb(30, 30, 30)", "rgb(200, 200, 200", "rgb(30, 30, 200)", "rgb(200, 30, 30)", "rgb(30, 100, 30)"];
 const canvas = document.getElementById('lua');
 const ctx = canvas.getContext('2d');
-const pen = {
-    x: 0,
-    y: 0,
-    d: null,
-    previous: null,
-    mode: true,
-    move(dx, dy){
-        let cell = grid[this.x][this.y];
-        this.previous = {
-            x: this.x,
-            y: this.y
-        };
-        cell.visit = true;
-        if(dx != 0){
-            this.x += dx;
-            if(dx > 0){
-                cell.ex = true;
-            }else{
-                grid[this.x][this.y].ex = true;
-            }
-            
-        }else if(dy != 0){
-            this.y += dy;
-            if(dy > 0){
-                cell.ey = true;
-            }else{
-                grid[this.x][this.y].ey = true;
-            }
-        }
-        let newCell = grid[this.x][this.y];
-        if(newCell.visit == false){
-            cell.color = colors[2];
-            newCell.color = colors[3];
-        }else{
-            newCell.visit=false;
-            cell.color = colors[1];
-            newCell.color = colors[3];
-        }
-    },
-    iterator(){
-        if(iterator){
-            directions = neighborn(this.x, this.y, this.mode);
-            for(i=0; i<=3; i++){
-                let num = Math.abs(Math.round(Math.random() * directions.length-1));
-                let random = directions[num];
-                if(random != this.d){
-                    this.d = random;
-                    console.log(directions);
-                    console.log(num);
-                    console.log(random);
-                    console.log(directions[random])
-                    if(random == 0){
-                        if(this.x < grid.length-1){
-                            if(!grid[this.x+1][this.y].visit && this.mode){
-                                this.move(1, 0);
-                                break;
-                            }else if(!grid[this.x+1][this.y].visit && !this.mode && grid[this.x][this.y].ex == true){
-                                this.move(1, 0);
-                                break;
-                            }else{
-                                directions.splice(random, 1);
-                            }
-                        }
-                    }else if(random == 1){
-                        if(this.x >= 0){
-                            if(!grid[this.x-1][this.y].visit && this.mode){
-                                this.move(-1, 0);
-                                break;
-                            }else if(grid[this.x-1][this.y].visit && !this.mode && grid[this.x+1][this.y].ex == true){
-                                this.move(-1, 0);
-                                break;
-                            }else{
-                                directions.splice(random, 1);
-                            }
-                        }
-                        
-                    }else if(random == 2){
-                        if(this.y < grid[0].length){
-                            if(!grid[this.x][this.y+1].visit && this.mode){
-                                this.move(0, 1);
-                                break;
-                            }else if(grid[this.x][this.y+1].visit && !this.mode && grid[this.x][this.y].ey == true){
-                                this.move(0, 1);
-                                break;
-                            }else{
-                                directions.splice(random, 1);
-                            }
-                        }
-                    }else if(random == 3){
-                        if(this.y >= 0){
-                            if(!grid[this.x][this.y-1].visit && this.mode){
-                                this.move(0, -1);
-                                break;
-                            }else if(grid[this.x][this.y-1].visit && !this.mode && grid[this.x][this.y+1].ey == true){
-                                this.move(0, -1);
-                                break;
-                            }else{
-                                directions.splice(random, 1);
-                            }
-                        }
-                    }else{
-                        //iterator = false;
-                        this.mode = false;
-                        break;
-                    }
+const head = {
+    x: 0,//posição em x
+    y: 0,//posição em y
+    d: [],//direção anterior
+    mode: "search",//search: procurando um caminho livre, back: voltando enquanto procura um caminho livre
+    moved: false,
+    alive: true,
+    neighborn(){
+        let directions = [];
+        let mode = {search: "clear", back: "visit"}
+        if(this.x < grid.length-1){
+            if(grid[this.x+1][this.y].mode == mode[this.mode]){
+                if(!(this.mode == "back") || grid[this.x][this.y].ex){
+                    directions.push(0);
                 }
             }
         }
-    }
-}
-
-function neighborn(x, y, b){
-    let neigh = [4];
-    
-    if(x < grid.lenght-1){
-        if(!(grid[x+1][y].visit ^ !b)){
-            neigh.push(0);
+        if(this.x > 0){
+            if(grid[this.x-1][this.y].mode == mode[this.mode]){
+                if(!(this.mode == "back") || grid[this.x-1][this.y].ex){
+                    directions.push(1);
+                }
+            }
+        }
+        if(this.y < grid[this.x].length-1){
+            if(grid[this.x][this.y+1].mode == mode[this.mode]){
+                if(!(this.mode == "back") || grid[this.x][this.y].ey){
+                    directions.push(2);
+                }
+            }
+        }
+        if(this.y > 0){
+            if(grid[this.x][this.y-1].mode == mode[this.mode]){
+                if(!(this.mode == "back") || grid[this.x][this.y-1].ey){
+                    directions.push(3);
+                }
+            }
+        }
+        return [directions, directions.length > 0];
+    },
+    toggleMode(){
+        if(this.mode == "back" && this.neighborn()[1]){
+            this.mode = "search";
+        }else if(!this.neighborn()[1]){
+            this.mode = "back";
+        }
+    },
+    move(n){
+        if(n != this.d[this.d.length-1] || this.mode == "back"){
+            //console.log(this.x+" "+this.y);
+            let cell = grid[this.x][this.y];//celula que a cabeça esta
+            let newcell = null;
+            switch(n){
+                case 0:
+                    if(this.x < grid.length-1){
+                        this.x++;//move para a direita
+                        if(this.mode == "search")this.d.push(1);
+                        this.moved = true;
+                    }
+                    break;
+                case 1:
+                    if(this.x > 0){
+                        this.x--;//move para a esquerda
+                        if(this.mode == "search")this.d.push(0);
+                        this.moved = true;
+                    }
+                    break;
+                case 2:
+                    if(this.y < grid[this.x].length-1){
+                        this.y++;//move para baixo
+                        if(this.mode == "search")this.d.push(3);
+                        this.moved = true;
+                    }
+                    break;
+                case 3:
+                    if(this.y > 0){
+                        this.y--;//move para cima
+                        if(this.mode == "search")this.d.push(2);
+                        this.moved = true;
+                    }
+            }
+            newcell = grid[this.x][this.y];//celula que a cabeça foi
+            if(this.mode == "search" && this.moved){
+                cell.color = colors[2];
+                newcell.color = colors[3];
+                newcell.mode = "visit";
+            }else if(this.mode == "back" && this.moved){
+                cell.color = colors[1];
+                newcell.color = colors[3];
+                newcell.mode = "unvisit";
+            }
+            if(this.moved){
+                switch(n){
+                    case 0:
+                        cell.ex = true;
+                        break;
+                    case 1:
+                        newcell.ex = true;
+                        break;
+                    case 2:
+                        cell.ey = true;
+                        break;
+                    case 3:
+                        newcell.ey = true;
+                }
+            }
+            //mudando o estado das celulas
+        }
+    },
+    life(){
+        //console.log(this.mode+" "+this.neighborn());
+        if(this.alive){
+            if(this.mode == "search"){
+                let info = this.neighborn();
+                let d = null;
+                if(info[0].length > 0){
+                    d = Math.round(Math.random() * info[0].length);
+                    console.log(info[0][d]);
+                    this.move(info[0][d]);
+                }
+            }else{
+                if(this.d.length <= 0){
+                    this.alive = false;
+                    grid[gx][gy].color = colors[4];
+                }
+                this.move(this.d.pop());
+            }
+            this.toggleMode();
+            //console.log(d);
         }
     }
-    if(x > 0){
-        if(grid[x-1][y].visit ^ !b){
-            neigh.push(1);
-        }
-    }
-    if(y < grid[0].lenght-1){
-        if(grid[x][y+1].visit ^ !b){
-            neigh.push(2);
-        }
-    }
-    if(y > 0){
-        if(grid[x][y-1].visit ^ !b){
-            neigh.push(3);
-        }
-    }
-    return neigh;
 }
 
 function clear(){
@@ -158,31 +152,17 @@ function drawRect(x, y, scolor){
 
 function animation(){
     requestAnimationFrame(animation);
+    head.life();
     clear();
-    pen.iterator();
     for(i in grid){
         for(j in grid[i]){
             let cell = grid[i][j];
-            drawRect(20*i, 20*j, cell.color);
-            if(grid[i][j].ex && i != grid.length-1){
-                let color = colors[0];
-                let excell = grid[+(i)+1][j];
-                if(excell.color === cell.color){
-                    color = cell.color
-                }else{
-                    color = colors[1]
-                }
-                drawRect(20*i+10, 20*j, color);
+            drawRect(i*20, j*20, cell.color);
+            if(cell.ex){
+                drawRect(i*20+10, j*20, cell.color);
             }
-            if(grid[i][j].ey && j != grid[0].length-1){
-                let color = colors[0];
-                let eycell = grid[i][+(j)+1];
-                if(eycell.color === cell.color){
-                    color = cell.color
-                }else{
-                    color = colors[1]
-                }
-                drawRect(20*i, 20*j+10, color);
+            if(cell.ey){
+                drawRect(i*20, j*20+10, cell.color);
             }
         }
     }
@@ -193,21 +173,23 @@ canvas.width = w.x;
 canvas.height = w.y;
 //redimensionar o canvas
 
-let grid = [];
-let gx = Math.floor(w.x/20);
-let gy = Math.floor(w.y/20);
+grid = [];
+let gx = Math.floor(w.x / 20);
+let gy = Math.floor(w.y / 20);
+
 for(i=0; i<=gx; i++){
     grid[i] = [];
     for(j=0; j<=gy; j++){
-        grid[i][j] = {
+        grid[i][j]={
             ex: false,
             ey: false,
-            visit: false,
-            unvist: false,
+            mode: "clear",
             color: colors[1],
         };
     }
 }
-grid[0][0].color=colors[2];
+let cell = grid[0][0];
+cell.color = colors[3];
+cell.mode = "visit";
 
 animation();
