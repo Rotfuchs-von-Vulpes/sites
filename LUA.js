@@ -3,13 +3,13 @@ const w = {
     x: window.innerWidth - 6,
     y: window.innerHeight - 6
 }
-let colors = ["rgb(30, 30, 30)", "rgb(200, 200, 200", "rgb(30, 30, 200)", "rgb(200, 30, 30)"];
+let colors = ["rgb(30, 30, 30)", "rgb(200, 200, 200", "rgb(30, 30, 200)", "rgb(200, 30, 30)", "rgb(30, 100, 30)"];
 const canvas = document.getElementById('lua');
 const ctx = canvas.getContext('2d');
 const head = {
     x: 0,//posição em x
     y: 0,//posição em y
-    d: null,//direção anterior
+    d: [],//direção anterior
     mode: "search",//search: procurando um caminho livre, back: voltando enquanto procura um caminho livre
     moved: false,
     alive: true,
@@ -49,14 +49,12 @@ const head = {
     toggleMode(){
         if(this.mode == "back" && this.neighborn()[1]){
             this.mode = "search";
-            this.d = null;
         }else if(!this.neighborn()[1]){
             this.mode = "back";
-            this.d = null;
         }
     },
     move(n){
-        if(n != this.d){
+        if(n != this.d[this.d.length-1] || this.mode == "back"){
             //console.log(this.x+" "+this.y);
             let cell = grid[this.x][this.y];//celula que a cabeça esta
             let newcell = null;
@@ -64,28 +62,28 @@ const head = {
                 case 0:
                     if(this.x < grid.length-1){
                         this.x++;//move para a direita
-                        this.d = 1;
+                        if(this.mode == "search")this.d.push(1);
                         this.moved = true;
                     }
                     break;
                 case 1:
                     if(this.x > 0){
                         this.x--;//move para a esquerda
-                        this.d = 0;
+                        if(this.mode == "search")this.d.push(0);
                         this.moved = true;
                     }
                     break;
                 case 2:
                     if(this.y < grid[this.x].length-1){
                         this.y++;//move para baixo
-                        this.d = 3;
+                        if(this.mode == "search")this.d.push(3);
                         this.moved = true;
                     }
                     break;
                 case 3:
                     if(this.y > 0){
                         this.y--;//move para cima
-                        this.d = 2;
+                        if(this.mode == "search")this.d.push(2);
                         this.moved = true;
                     }
             }
@@ -118,14 +116,22 @@ const head = {
         }
     },
     life(){
-        console.log(this.mode+" "+this.neighborn());
+        //console.log(this.mode+" "+this.neighborn());
         if(this.alive){
-            let info = this.neighborn();
-            let d = null;
-            if(info[0].length > 0){
-                d = Math.round(Math.random() * info[0].length);
-                console.log(info[0][d]);
-                this.move(info[0][d]);
+            if(this.mode == "search"){
+                let info = this.neighborn();
+                let d = null;
+                if(info[0].length > 0){
+                    d = Math.round(Math.random() * info[0].length);
+                    console.log(info[0][d]);
+                    this.move(info[0][d]);
+                }
+            }else{
+                if(this.d.length <= 0){
+                    this.alive = false;
+                    grid[gx][gy].color = colors[4];
+                }
+                this.move(this.d.pop());
             }
             this.toggleMode();
             //console.log(d);
