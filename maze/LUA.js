@@ -93,6 +93,8 @@ const head = {
                 newcell.color = colors[3];
                 newcell.mode = "visit";
             }else if(this.mode == "back" && this.moved){
+                let n = 3.7;
+                let nd = this.d.length;
                 cell.color = colors[1];
                 newcell.color = colors[3];
                 newcell.mode = "unvisit";
@@ -147,7 +149,7 @@ function clear(){
 
 function drawRect(x, y, scolor){
     ctx.fillStyle = scolor;
-    ctx.fillRect(x, y, 10, 10);
+    ctx.fillRect(x, y, 20, 20);
 }
 
 function animation(){
@@ -157,12 +159,12 @@ function animation(){
     for(i in grid){
         for(j in grid[i]){
             let cell = grid[i][j];
-            drawRect(i*20, j*20, cell.color);
+            drawRect(i*40, j*40, cell.color);
             if(cell.ex){
-                drawRect(i*20+10, j*20, cell.color);
+                drawRect(i*40+20, j*40, cell.color);
             }
             if(cell.ey){
-                drawRect(i*20, j*20+10, cell.color);
+                drawRect(i*40, j*40+20, cell.color);
             }
         }
     }
@@ -174,8 +176,8 @@ canvas.height = w.y;
 //redimensionar o canvas
 
 grid = [];
-let gx = Math.floor(w.x / 20);
-let gy = Math.floor(w.y / 20);
+let gx = Math.floor(w.x / 40);
+let gy = Math.floor(w.y / 40);
 
 for(i=0; i<=gx; i++){
     grid[i] = [];
@@ -184,12 +186,11 @@ for(i=0; i<=gx; i++){
             ex: false,
             ey: false,
             mode: "clear",
-            color: colors[1],
+            color: colors[0],
         };
     }
 }
 let cell = grid[0][0];
 cell.color = colors[3];
 cell.mode = "visit";
-
 animation();
