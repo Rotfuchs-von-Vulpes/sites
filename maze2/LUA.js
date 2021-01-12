@@ -95,7 +95,7 @@ const head = {
             }else if(this.mode == "back" && this.moved){
                 let n = 3.7;
                 let nd = this.d.length;
-                cell.color = `rgb(${200-nd/(2*n)},${200-nd/n},30)`;
+                cell.color = `rgb(${200-nd/(n*2)},${200-nd/n}, 30)`;
                 newcell.color = colors[3];
                 newcell.mode = "unvisit";
             }
@@ -153,6 +153,7 @@ function drawRect(x, y, scolor){
 
 function animation(){
     requestAnimationFrame(animation);
+    
     clear();
     for(i in grid){
         for(j in grid[i]){
@@ -191,7 +192,7 @@ for(i=0; i<=gx; i++){
 let cell = grid[0][0];
 cell.color = colors[3];
 cell.mode = "visit";
-while (head.alive) {
+while(head.alive){
     head.life();
 }
 animation();
