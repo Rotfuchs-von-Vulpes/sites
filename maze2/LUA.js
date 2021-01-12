@@ -153,9 +153,6 @@ function drawRect(x, y, scolor){
 
 function animation(){
     requestAnimationFrame(animation);
-    while (head.alive) {
-        head.life();
-    }
     clear();
     for(i in grid){
         for(j in grid[i]){
@@ -194,5 +191,7 @@ for(i=0; i<=gx; i++){
 let cell = grid[0][0];
 cell.color = colors[3];
 cell.mode = "visit";
-
+while (head.alive) {
+    head.life();
+}
 animation();
